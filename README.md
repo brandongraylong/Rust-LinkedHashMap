@@ -18,4 +18,4 @@ should allow for reverse lookup by index in the future, so that's pretty cool.
 
 ## TODO
 - Make this even more non-standard and do reverse lookup by index?
-- I would make this more standard, but an implementation for [a LinkedHashMap in Rust already exists](https://docs.rs/linked-hash-map/latest/linked_hash_map/).
+- I would make this more standard, but an implementation for [a LinkedHashMap in Rust](https://docs.rs/linked-hash-map/latest/linked_hash_map/) already exists.
