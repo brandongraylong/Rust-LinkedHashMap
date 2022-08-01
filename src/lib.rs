@@ -10,7 +10,7 @@ pub mod ds {
     use std::cmp::Eq;
     use std::fmt::Debug;
     use std::hash::Hash;
-    use std::marker::Copy;
+    use std::clone::Clone;
 
     /// Stores an index for quick key lookup and the value.
     struct IndexedLinkedHashMapValue<V> {
@@ -25,7 +25,7 @@ pub mod ds {
         _values: HashMap<K, IndexedLinkedHashMapValue<V>>,
     }
     
-    impl<K, V> IndexedLinkedHashMap<K, V> where K: Eq + Hash + Copy, V: Copy {
+    impl<K, V> IndexedLinkedHashMap<K, V> where K: Eq + Hash + Clone, V: Clone {
         /// Creates new `IndexedLinkedHashMap`.
         pub fn new() -> Self {
             return IndexedLinkedHashMap {
@@ -42,7 +42,7 @@ pub mod ds {
                 return None;
             }
             
-            return Some(value.unwrap()._value);
+            return Some(value.unwrap()._value.to_owned());
         }
 
         /// Sets value; upserts if exists already or adds new entry.
@@ -54,7 +54,7 @@ pub mod ds {
                     _value: v,
                 });
             } else {
-                self._keys.push(k);
+                self._keys.push(k.to_owned());
                 self._values.insert(k, IndexedLinkedHashMapValue {
                     _index: self._len,
                     _value: v,
@@ -69,7 +69,7 @@ pub mod ds {
                 return None;
             }
 
-            return Some(self._values.get(self._keys.get(i).unwrap()).unwrap()._value)
+            return Some(self._values.get(self._keys.get(i).unwrap()).unwrap()._value.to_owned())
         }
 
         // Sets value at index.
@@ -78,7 +78,7 @@ pub mod ds {
                 return;
             }
 
-            self._keys[i] = k;
+            self._keys[i] = k.to_owned();
             self._values.insert(k, IndexedLinkedHashMapValue {
                 _index: i,
                 _value: v,
@@ -124,7 +124,7 @@ pub mod ds {
         pub fn values(&self) -> Vec<V> {
             let mut rvs: Vec<V> = Vec::new();
             for k in self._keys.iter() {
-                rvs.push(self._values.get(k).unwrap()._value);   
+                rvs.push(self._values.get(k).unwrap()._value.to_owned());   
             }
             return rvs;
         }
@@ -133,13 +133,13 @@ pub mod ds {
         pub fn iter(&self) -> impl Iterator<Item=(K, V)> + '_ {
             let mut rvs: Vec<(K, V)> = Vec::new();
             for k in self._keys.iter() {
-                rvs.push((*k, self._values.get(k).unwrap()._value));   
+                rvs.push((k.clone(), self._values.get(k).unwrap()._value.to_owned()));   
             }
             return rvs.into_iter();
         }
     }
 
-    impl<K, V> fmt::Debug for IndexedLinkedHashMap<K, V> where K: Eq + Hash + Copy + Debug, V: Copy + Debug {
+    impl<K, V> fmt::Debug for IndexedLinkedHashMap<K, V> where K: Eq + Hash + Clone + Debug, V: Clone + Debug {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             let mut out: String = String::new();
             for (k, v) in self.iter() {
