@@ -1,10 +1,5 @@
-# Rust LinkedHashMap
-LinkedHashMap implementation in Rust.
-
-## About
-This is certainly not the most efficient or *best* implementation; however, I'm
-mainly just trying to learn rust docs, unit testing, and generics. The code I have now
-should allow for reverse lookup by index in the future, so that's pretty cool.
+# Rust IndexedLinkedHashMap
+An indexable LinkedHashMap written in Rust.
 
 ## Getting Started
 - [Install Rust](https://www.rust-lang.org/tools/install)
@@ -15,7 +10,3 @@ should allow for reverse lookup by index in the future, so that's pretty cool.
 
 ## Run Tests
 `cargo test`
-
-## TODO
-- Make this even more non-standard and do reverse lookup by index?
-- I would make this more standard, but an implementation for [a LinkedHashMap in Rust](https://crates.io/crates/linked-hash-map) already exists.

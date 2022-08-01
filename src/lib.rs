@@ -35,7 +35,7 @@ pub mod ds {
             };
         }
 
-        /// Gets value; returns `Some(v)` if exists or `None`.
+        /// Gets value using key; returns `Some(v)` if exists or `None`.
         pub fn get(&self, k: K) -> Option<V> {
             let value = self._values.get(&k);
             if value.is_none() {
@@ -61,6 +61,28 @@ pub mod ds {
                 });
                 self._len += 1;
             }
+        }
+        
+        /// Gets value using index; returns `Some(v)` if exists or `None`.
+        pub fn at(&self, i: usize) -> Option<V> {
+            if i >= self._len {
+                return None;
+            }
+
+            return Some(self._values.get(self._keys.get(i).unwrap()).unwrap()._value)
+        }
+
+        // Sets value at index.
+        pub fn set_at(&mut self, i: usize, k: K, v: V) {
+            if i >= self._len {
+                return;
+            }
+
+            self._keys[i] = k;
+            self._values.insert(k, LinkedHashMapValue {
+                _index: i,
+                _value: v,
+            });
         }
 
         /// Removes value; returns `Some(v)` if exists or `None`.
@@ -159,6 +181,26 @@ mod tests {
                 assert!(ins.keys().len() == 1);
                 assert!(ins.values().len() == 1);
                 assert!(ins.get("k") == Some(1));
+            }
+
+            #[test]
+            fn at() {
+                let mut ins = self::LinkedHashMap::<&str, usize>::new();
+                assert!(ins.at(0) == None);
+                ins.set("k", 1);
+                assert!(ins.at(0) == Some(1));
+                assert!(ins.at(1) == None);
+            }
+
+            #[test]
+            fn set_at() {
+                let mut ins = self::LinkedHashMap::<&str, usize>::new();
+                ins.set_at(1, "a", 2);
+                assert!(ins.get("a") == None);
+                ins.set("k", 1);
+                ins.set_at(0, "b", 3);
+                assert!(ins.at(0) == Some(3));
+                assert!(ins.get("b") == Some(3));
             }
             
             #[test]
