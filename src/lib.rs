@@ -1,9 +1,9 @@
-#![crate_name = "linkedhashmap"]
+#![crate_name = "indexedlinkedhashmap"]
 #![allow(dead_code)]
 
 //! Provides an easy interface to preserve the insertion order of your `HashMap`.
 
-/// `LinkedHashMap` data structure lives here.
+/// `IndexedLinkedHashMap` data structure lives here.
 pub mod ds {
     use core::fmt;
     use std::collections::HashMap;
@@ -13,22 +13,22 @@ pub mod ds {
     use std::marker::Copy;
 
     /// Stores an index for quick key lookup and the value.
-    struct LinkedHashMapValue<V> {
+    struct IndexedLinkedHashMapValue<V> {
         _index: usize,
         _value: V,
     }
 
     /// Stores number of keys, keys in order, and values.
-    pub struct LinkedHashMap<K, V> {
+    pub struct IndexedLinkedHashMap<K, V> {
         _len: usize,
         _keys: Vec<K>,
-        _values: HashMap<K, LinkedHashMapValue<V>>,
+        _values: HashMap<K, IndexedLinkedHashMapValue<V>>,
     }
     
-    impl<K, V> LinkedHashMap<K, V> where K: Eq + Hash + Copy, V: Copy {
-        /// Creates new `LinkedHashMap`.
+    impl<K, V> IndexedLinkedHashMap<K, V> where K: Eq + Hash + Copy, V: Copy {
+        /// Creates new `IndexedLinkedHashMap`.
         pub fn new() -> Self {
-            return LinkedHashMap {
+            return IndexedLinkedHashMap {
                 _len: 0,
                 _keys: Vec::new(),
                 _values: HashMap::new(),
@@ -48,14 +48,14 @@ pub mod ds {
         /// Sets value; upserts if exists already or adds new entry.
         pub fn set(&mut self, k: K, v: V) {
             if self._values.contains_key(&k) {
-                let value: &LinkedHashMapValue<V> = self._values.get(&k).unwrap();
-                self._values.insert(k, LinkedHashMapValue {
+                let value: &IndexedLinkedHashMapValue<V> = self._values.get(&k).unwrap();
+                self._values.insert(k, IndexedLinkedHashMapValue {
                     _index: value._index,
                     _value: v,
                 });
             } else {
                 self._keys.push(k);
-                self._values.insert(k, LinkedHashMapValue {
+                self._values.insert(k, IndexedLinkedHashMapValue {
                     _index: self._len,
                     _value: v,
                 });
@@ -79,7 +79,7 @@ pub mod ds {
             }
 
             self._keys[i] = k;
-            self._values.insert(k, LinkedHashMapValue {
+            self._values.insert(k, IndexedLinkedHashMapValue {
                 _index: i,
                 _value: v,
             });
@@ -88,7 +88,7 @@ pub mod ds {
         /// Removes value; returns `Some(v)` if exists or `None`.
         pub fn remove(&mut self, k: K) -> Option<V> {
             if self._values.contains_key(&k) {
-                let removed: LinkedHashMapValue<V> = self._values.remove(&k).unwrap();
+                let removed: IndexedLinkedHashMapValue<V> = self._values.remove(&k).unwrap();
                 self._keys.remove(removed._index);
                 self._len -= 1;
                 
@@ -139,7 +139,7 @@ pub mod ds {
         }
     }
 
-    impl<K, V> fmt::Debug for LinkedHashMap<K, V> where K: Eq + Hash + Copy + Debug, V: Copy + Debug {
+    impl<K, V> fmt::Debug for IndexedLinkedHashMap<K, V> where K: Eq + Hash + Copy + Debug, V: Copy + Debug {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             let mut out: String = String::new();
             for (k, v) in self.iter() {
@@ -159,7 +159,7 @@ mod tests {
     
             #[test]
             fn new() {
-                let ins = self::LinkedHashMap::<&str, usize>::new();
+                let ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 assert!(ins.len() == 0);
                 assert!(ins.keys().len() == 0);
                 assert!(ins.values().len() == 0);
@@ -167,7 +167,7 @@ mod tests {
 
             #[test]
             fn get() {
-                let mut ins = self::LinkedHashMap::<&str, usize>::new();
+                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 assert!(ins.get("k") == None);
                 ins.set("k", 1);
                 assert!(ins.get("k") == Some(1));
@@ -175,7 +175,7 @@ mod tests {
             
             #[test]
             fn set() {
-                let mut ins = self::LinkedHashMap::<&str, usize>::new();
+                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 ins.set("k", 1);
                 assert!(ins.len() == 1);
                 assert!(ins.keys().len() == 1);
@@ -185,7 +185,7 @@ mod tests {
 
             #[test]
             fn at() {
-                let mut ins = self::LinkedHashMap::<&str, usize>::new();
+                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 assert!(ins.at(0) == None);
                 ins.set("k", 1);
                 assert!(ins.at(0) == Some(1));
@@ -194,7 +194,7 @@ mod tests {
 
             #[test]
             fn set_at() {
-                let mut ins = self::LinkedHashMap::<&str, usize>::new();
+                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 ins.set_at(1, "a", 2);
                 assert!(ins.get("a") == None);
                 ins.set("k", 1);
@@ -205,7 +205,7 @@ mod tests {
             
             #[test]
             fn remove() {
-                let mut ins = self::LinkedHashMap::<&str, usize>::new();
+                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 assert!(ins.remove("k") == None);
                 assert!(ins.len() == 0);
                 assert!(ins.keys().len() == 0);
@@ -219,7 +219,7 @@ mod tests {
             
             #[test]
             fn clear() {
-                let mut ins = self::LinkedHashMap::<&str, usize>::new();
+                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 ins.clear();
                 assert!(ins.len() == 0);
                 assert!(ins.keys().len() == 0);
@@ -233,7 +233,7 @@ mod tests {
             
             #[test]
             fn len() {
-                let mut ins = self::LinkedHashMap::<&str, usize>::new();
+                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 assert!(ins.len() == 0);
                 ins.clear();
                 assert!(ins.len() == 0);
@@ -245,7 +245,7 @@ mod tests {
             
             #[test]
             fn contains_key() {
-                let mut ins = self::LinkedHashMap::<&str, usize>::new();
+                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 assert!(ins.contains_key("k") == false);
                 ins.set("k", 1);
                 assert!(ins.contains_key("k") == true);
@@ -253,7 +253,7 @@ mod tests {
             
             #[test]
             fn keys() {
-                let mut ins = self::LinkedHashMap::<&str, usize>::new();
+                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 let mut keys: Vec<&str> = Vec::new();
                 assert!(ins.keys().eq(&keys));
                 ins.set("k", 1);
@@ -263,7 +263,7 @@ mod tests {
             
             #[test]
             fn values() {
-                let mut ins = self::LinkedHashMap::<&str, usize>::new();
+                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 let mut values: Vec<usize> = Vec::new();
                 assert!(ins.values().eq(&values));
                 ins.set("k", 1);
@@ -277,7 +277,7 @@ mod tests {
 
             #[test]
             fn fmt() {
-                let mut ins = self::LinkedHashMap::<&str, usize>::new();
+                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 assert!("" == format!("{:?}", ins));
                 ins.set("k", 1);
                 println!("{:?}", ins);
