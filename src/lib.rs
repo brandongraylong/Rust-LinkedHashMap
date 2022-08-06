@@ -72,6 +72,15 @@ pub mod ds {
             return Some(self._values.get(self._keys.get(i).unwrap()).unwrap()._value.to_owned())
         }
 
+        /// Gets key using index; returns `Some(k)` if exists or `None`.
+        pub fn key_at(&self, i: usize) -> Option<K> {
+            if i >= self._len {
+                return None;
+            }
+
+            return Some(self._keys.get(i).unwrap().clone());
+        }
+
         // Sets value at index.
         pub fn set_at(&mut self, i: usize, k: K, v: V) {
             if i >= self._len {
@@ -190,6 +199,15 @@ mod tests {
                 ins.set("k", 1);
                 assert!(ins.at(0) == Some(1));
                 assert!(ins.at(1) == None);
+            }
+
+            #[test]
+            fn key_at() {
+                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
+                assert!(ins.at(0) == None);
+                ins.set("k", 1);
+                assert!(ins.key_at(0) == Some("k"));
+                assert!(ins.key_at(1) == None);
             }
 
             #[test]
