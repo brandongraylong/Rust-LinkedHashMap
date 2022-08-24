@@ -347,7 +347,7 @@ mod tests {
             }
 
             #[test]
-            fn set() {
+            fn run() {
                 let mut averages: HashMap<&str, u128> = HashMap::new();
                 for _ in 0..VALIDATIONS {
                     let now = Instant::now();
@@ -357,12 +357,12 @@ mod tests {
                         let k: String = get_random_string();
                         let v: u32 = get_random_number::<u32>();
                         ins.set(k.to_owned(), v);
-                        ins.get(k.to_owned());
+                        ins.get(&k.to_owned());
                         ins.at(i);
                         ins.key_at(i);
                         ins.set_at(i, k.to_owned(), v);
                         ins.len();
-                        ins.contains_key(k.to_owned());
+                        ins.contains_key(&k.to_owned());
                         ins.keys();
                         ins.values();
                         ins.remove(k.to_owned());
