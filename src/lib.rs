@@ -1,16 +1,16 @@
 #![crate_name = "indexedlinkedhashmap"]
-#![allow(dead_code)]
 
 //! Provides an easy interface to preserve the insertion order of your `HashMap`.
 
 /// `IndexedLinkedHashMap` data structure lives here.
 pub mod ds {
     use core::fmt;
-    use std::collections::HashMap;
+    use std::clone::Clone;
     use std::cmp::Eq;
+    use std::collections::HashMap;
     use std::fmt::Debug;
     use std::hash::Hash;
-    use std::clone::Clone;
+    use std::marker::Copy;
 
     /// Stores an index for quick key lookup and the value.
     struct IndexedLinkedHashMapValue<V> {
@@ -24,8 +24,11 @@ pub mod ds {
         _keys: Vec<K>,
         _values: HashMap<K, IndexedLinkedHashMapValue<V>>,
     }
-    
-    impl<K, V> IndexedLinkedHashMap<K, V> where K: Eq + Hash + Clone, V: Clone {
+
+    impl<K, V> IndexedLinkedHashMap<K, V>
+    where
+        K: Eq + Hash,
+    {
         /// Creates new `IndexedLinkedHashMap`.
         pub fn new() -> Self {
             return IndexedLinkedHashMap {
@@ -36,62 +39,77 @@ pub mod ds {
         }
 
         /// Gets value using key; returns `Some(v)` if exists or `None`.
-        pub fn get(&self, k: K) -> Option<V> {
-            let value = self._values.get(&k);
+        pub fn get(&self, k: &K) -> Option<&V> {
+            let value = self._values.get(k);
             if value.is_none() {
                 return None;
             }
-            
-            return Some(value.unwrap()._value.to_owned());
+
+            return Some(&value.unwrap()._value);
         }
 
         /// Sets value; upserts if exists already or adds new entry.
-        pub fn set(&mut self, k: K, v: V) {
+        pub fn set(&mut self, k: K, v: V)
+        where
+            K: Clone,
+        {
             if self._values.contains_key(&k) {
                 let value: &IndexedLinkedHashMapValue<V> = self._values.get(&k).unwrap();
-                self._values.insert(k, IndexedLinkedHashMapValue {
-                    _index: value._index,
-                    _value: v,
-                });
+                self._values.insert(
+                    k,
+                    IndexedLinkedHashMapValue {
+                        _index: value._index,
+                        _value: v,
+                    },
+                );
             } else {
                 self._keys.push(k.to_owned());
-                self._values.insert(k, IndexedLinkedHashMapValue {
-                    _index: self._len,
-                    _value: v,
-                });
+                self._values.insert(
+                    k,
+                    IndexedLinkedHashMapValue {
+                        _index: self._len,
+                        _value: v,
+                    },
+                );
                 self._len += 1;
             }
         }
-        
+
         /// Gets value using index; returns `Some(v)` if exists or `None`.
-        pub fn at(&self, i: usize) -> Option<V> {
+        pub fn at(&self, i: usize) -> Option<&V> {
             if i >= self._len {
                 return None;
             }
 
-            return Some(self._values.get(self._keys.get(i).unwrap()).unwrap()._value.to_owned())
+            return Some(&self._values.get(self._keys.get(i).unwrap()).unwrap()._value);
         }
 
         /// Gets key using index; returns `Some(k)` if exists or `None`.
-        pub fn key_at(&self, i: usize) -> Option<K> {
+        pub fn key_at(&self, i: usize) -> Option<&K> {
             if i >= self._len {
                 return None;
             }
 
-            return Some(self._keys.get(i).unwrap().clone());
+            return Some(self._keys.get(i).unwrap());
         }
 
         // Sets value at index.
-        pub fn set_at(&mut self, i: usize, k: K, v: V) {
+        pub fn set_at(&mut self, i: usize, k: K, v: V)
+        where
+            K: Clone,
+        {
             if i >= self._len {
                 return;
             }
 
             self._keys[i] = k.to_owned();
-            self._values.insert(k, IndexedLinkedHashMapValue {
-                _index: i,
-                _value: v,
-            });
+            self._values.insert(
+                k,
+                IndexedLinkedHashMapValue {
+                    _index: i,
+                    _value: v,
+                },
+            );
         }
 
         /// Removes value; returns `Some(v)` if exists or `None`.
@@ -100,7 +118,7 @@ pub mod ds {
                 let removed: IndexedLinkedHashMapValue<V> = self._values.remove(&k).unwrap();
                 self._keys.remove(removed._index);
                 self._len -= 1;
-                
+
                 return Some(removed._value);
             }
 
@@ -113,42 +131,54 @@ pub mod ds {
             self._values.clear();
             self._len = 0;
         }
-        
+
         /// Gets length.
         pub fn len(&self) -> usize {
             return self._len;
         }
 
         /// Check if contains a key.
-        pub fn contains_key(&self, k: K) -> bool {
-            return self._values.contains_key(&k);
+        pub fn contains_key(&self, k: &K) -> bool {
+            return self._values.contains_key(k);
         }
 
         /// Gets all keys.
-        pub fn keys(&self) -> Vec<K> {
-            return self._keys.clone();
+        pub fn keys(&self) -> Vec<&K> {
+            let mut key_refs: Vec<&K> = Vec::new();
+            for k in self._keys.iter() {
+                key_refs.push(k);
+            }
+            return key_refs;
         }
 
         /// Gets all values.
-        pub fn values(&self) -> Vec<V> {
-            let mut rvs: Vec<V> = Vec::new();
+        pub fn values(&self) -> Vec<&V> {
+            let mut value_refs: Vec<&V> = Vec::new();
             for k in self._keys.iter() {
-                rvs.push(self._values.get(k).unwrap()._value.to_owned());   
+                value_refs.push(&self._values.get(k).unwrap()._value);
             }
-            return rvs;
+            return value_refs;
         }
 
         /// Iterator.
-        pub fn iter(&self) -> impl Iterator<Item=(K, V)> + '_ {
+        pub fn iter(&self) -> impl Iterator<Item = (K, V)> + '_
+        where
+            K: Copy,
+            V: Copy,
+        {
             let mut rvs: Vec<(K, V)> = Vec::new();
             for k in self._keys.iter() {
-                rvs.push((k.clone(), self._values.get(k).unwrap()._value.to_owned()));   
+                rvs.push((*k, self._values.get(k).unwrap()._value));
             }
             return rvs.into_iter();
         }
     }
 
-    impl<K, V> fmt::Debug for IndexedLinkedHashMap<K, V> where K: Eq + Hash + Clone + Debug, V: Clone + Debug {
+    impl<K, V> fmt::Debug for IndexedLinkedHashMap<K, V>
+    where
+        K: Eq + Hash + Copy + Debug,
+        V: Copy + Debug,
+    {
         fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
             let mut out: String = String::new();
             for (k, v) in self.iter() {
@@ -165,10 +195,10 @@ mod tests {
     mod linked_hashmap {
         mod linked_hashmap {
             use crate::ds::*;
-    
+
             #[test]
             fn new() {
-                let ins = self::IndexedLinkedHashMap::<&str, usize>::new();
+                let ins = self::IndexedLinkedHashMap::<String, usize>::new();
                 assert!(ins.len() == 0);
                 assert!(ins.keys().len() == 0);
                 assert!(ins.values().len() == 0);
@@ -177,19 +207,19 @@ mod tests {
             #[test]
             fn get() {
                 let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
-                assert!(ins.get("k") == None);
+                assert!(ins.get(&"k") == None);
                 ins.set("k", 1);
-                assert!(ins.get("k") == Some(1));
+                assert!(ins.get(&"k") == Some(&1));
             }
-            
+
             #[test]
             fn set() {
-                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
-                ins.set("k", 1);
+                let mut ins = self::IndexedLinkedHashMap::<String, usize>::new();
+                ins.set(String::from("k"), 1);
                 assert!(ins.len() == 1);
                 assert!(ins.keys().len() == 1);
                 assert!(ins.values().len() == 1);
-                assert!(ins.get("k") == Some(1));
+                assert!(ins.get(&String::from("k")) == Some(&1));
             }
 
             #[test]
@@ -197,7 +227,7 @@ mod tests {
                 let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 assert!(ins.at(0) == None);
                 ins.set("k", 1);
-                assert!(ins.at(0) == Some(1));
+                assert!(ins.at(0) == Some(&1));
                 assert!(ins.at(1) == None);
             }
 
@@ -206,7 +236,7 @@ mod tests {
                 let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 assert!(ins.at(0) == None);
                 ins.set("k", 1);
-                assert!(ins.key_at(0) == Some("k"));
+                assert!(ins.key_at(0) == Some(&"k"));
                 assert!(ins.key_at(1) == None);
             }
 
@@ -214,13 +244,13 @@ mod tests {
             fn set_at() {
                 let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
                 ins.set_at(1, "a", 2);
-                assert!(ins.get("a") == None);
+                assert!(ins.get(&"a") == None);
                 ins.set("k", 1);
                 ins.set_at(0, "b", 3);
-                assert!(ins.at(0) == Some(3));
-                assert!(ins.get("b") == Some(3));
+                assert!(ins.at(0) == Some(&3));
+                assert!(ins.get(&"b") == Some(&3));
             }
-            
+
             #[test]
             fn remove() {
                 let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
@@ -234,7 +264,7 @@ mod tests {
                 assert!(ins.keys().len() == 0);
                 assert!(ins.values().len() == 0);
             }
-            
+
             #[test]
             fn clear() {
                 let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
@@ -248,7 +278,7 @@ mod tests {
                 assert!(ins.keys().len() == 0);
                 assert!(ins.values().len() == 0);
             }
-            
+
             #[test]
             fn len() {
                 let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
@@ -260,32 +290,32 @@ mod tests {
                 ins.clear();
                 assert!(ins.len() == 0);
             }
-            
+
             #[test]
             fn contains_key() {
                 let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
-                assert!(ins.contains_key("k") == false);
+                assert!(ins.contains_key(&"k") == false);
                 ins.set("k", 1);
-                assert!(ins.contains_key("k") == true);
+                assert!(ins.contains_key(&"k") == true);
             }
-            
+
             #[test]
             fn keys() {
-                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
+                let mut ins = self::IndexedLinkedHashMap::<String, usize>::new();
                 let mut keys: Vec<&str> = Vec::new();
                 assert!(ins.keys().eq(&keys));
-                ins.set("k", 1);
+                ins.set(String::from("k"), 1);
                 keys.push("k");
                 assert!(ins.keys().eq(&keys));
             }
-            
+
             #[test]
             fn values() {
-                let mut ins = self::IndexedLinkedHashMap::<&str, usize>::new();
-                let mut values: Vec<usize> = Vec::new();
+                let mut ins = self::IndexedLinkedHashMap::<String, usize>::new();
+                let mut values: Vec<&usize> = Vec::new();
                 assert!(ins.values().eq(&values));
-                ins.set("k", 1);
-                values.push(1);
+                ins.set(String::from("k"), 1);
+                values.push(&1);
                 assert!(ins.values().eq(&values));
             }
         }
@@ -300,6 +330,83 @@ mod tests {
                 ins.set("k", 1);
                 println!("{:?}", ins);
                 assert!("\"k\": 1" == format!("{:?}", ins));
+            }
+        }
+
+        mod performance {
+            use crate::ds::*;
+            use rand::distributions::{Alphanumeric, DistString, Distribution, Standard};
+            use std::{collections::HashMap, time::Instant};
+
+            const VALIDATIONS: u128 = 10;
+            const ITERATIONS: usize = 1000;
+
+            fn get_random_string() -> String {
+                return Alphanumeric.sample_string(&mut rand::thread_rng(), u8::MAX.into());
+            }
+
+            fn get_random_number<T>() -> T
+            where
+                Standard: Distribution<T>,
+            {
+                return rand::random::<T>();
+            }
+
+            fn insert_or_add(averages: &mut HashMap<&str, u128>, key: &'static str, value: u128) {
+                if averages.contains_key(key) {
+                    averages.insert(key, averages.get(key).unwrap() + value);
+                } else {
+                    averages.insert(key, value);
+                }
+            }
+
+            fn timestamp(now: &Instant, averages: &mut HashMap<&str, u128>) {
+                insert_or_add(averages, "s", now.elapsed().as_secs().into());
+                insert_or_add(averages, "ms", now.elapsed().as_millis());
+                insert_or_add(averages, "μs", now.elapsed().as_micros());
+                insert_or_add(averages, "ns", now.elapsed().as_nanos());
+            }
+
+            fn print_report(averages: &HashMap<&str, u128>) {
+                println!("===== BEGIN REPORT =====");
+                for (key, value) in averages.into_iter() {
+                    println!(
+                        "Average of {} runs of {} iterations: {} {}",
+                        VALIDATIONS,
+                        ITERATIONS,
+                        value / VALIDATIONS,
+                        key
+                    );
+                }
+                println!("===== END REPORT =====");
+            }
+
+            #[test]
+            fn run() {
+                let mut averages: HashMap<&str, u128> = HashMap::new();
+                for _ in 0..VALIDATIONS {
+                    let now = Instant::now();
+                    let mut ins = IndexedLinkedHashMap::<String, u32>::new();
+
+                    for i in 0..ITERATIONS {
+                        let k: String = get_random_string();
+                        let v: u32 = get_random_number::<u32>();
+                        ins.set(k.to_owned(), v);
+                        ins.get(&k.to_owned());
+                        ins.at(i);
+                        ins.key_at(i);
+                        ins.set_at(i, k.to_owned(), v);
+                        ins.len();
+                        ins.contains_key(&k.to_owned());
+                        ins.keys();
+                        ins.values();
+                        ins.remove(k.to_owned());
+                        ins.set(k, v);
+                    }
+                    ins.clear();
+                    timestamp(&now, &mut averages);
+                }
+                print_report(&averages);
             }
         }
     }

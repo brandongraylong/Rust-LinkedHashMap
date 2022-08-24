@@ -9,4 +9,4 @@ An indexable LinkedHashMap written in Rust.
 - Open `./target/doc/linkedhashmap/index.html` in a web browser
 
 ## Run Tests
-`cargo test`
+`cargo test --release -- --nocapture`
