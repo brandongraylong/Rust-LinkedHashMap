@@ -302,5 +302,73 @@ mod tests {
                 assert!("\"k\": 1" == format!("{:?}", ins));
             }
         }
+
+        mod performance {
+            use std::{time::Instant, collections::HashMap};
+            use rand::distributions::{Alphanumeric, DistString, Standard, Distribution};
+            use crate::ds::*;
+
+            const VALIDATIONS: u128 = 10;
+            const ITERATIONS: usize = 1000;
+
+            fn get_random_string() -> String {
+                return Alphanumeric.sample_string(&mut rand::thread_rng(), u8::MAX.into());
+            }
+
+            fn get_random_number<T>() -> T where Standard: Distribution<T> {
+                return rand::random::<T>();
+            }
+
+            fn insert_or_add(averages: &mut HashMap<&str, u128>, key: &'static str, value: u128) {
+                if averages.contains_key(key) {
+                    averages.insert(key, averages.get(key).unwrap() + value);
+                } else {
+                    averages.insert(key, value);
+                }
+            }
+
+            fn timestamp(now: &Instant, averages: &mut HashMap<&str, u128>) {
+                insert_or_add(averages, "s", now.elapsed().as_secs().into());
+                insert_or_add(averages, "ms", now.elapsed().as_millis());
+                insert_or_add(averages, "μs", now.elapsed().as_micros());
+                insert_or_add(averages, "ns", now.elapsed().as_nanos());
+            }
+
+            fn print_report(averages: &HashMap<&str, u128>) {
+                println!("===== BEGIN REPORT =====");
+                for (key, value) in averages.into_iter() {
+                    println!("Average of {} runs of {} iterations: {} {}", VALIDATIONS, ITERATIONS, value / VALIDATIONS, key);
+                }
+                println!("===== END REPORT =====");
+            }
+
+            #[test]
+            fn set() {
+                let mut averages: HashMap<&str, u128> = HashMap::new();
+                for _ in 0..VALIDATIONS {
+                    let now = Instant::now();
+                    let mut ins = IndexedLinkedHashMap::<String, u32>::new();
+
+                    for i in 0..ITERATIONS {
+                        let k: String = get_random_string();
+                        let v: u32 = get_random_number::<u32>();
+                        ins.set(k.to_owned(), v);
+                        ins.get(k.to_owned());
+                        ins.at(i);
+                        ins.key_at(i);
+                        ins.set_at(i, k.to_owned(), v);
+                        ins.len();
+                        ins.contains_key(k.to_owned());
+                        ins.keys();
+                        ins.values();
+                        ins.remove(k.to_owned());
+                        ins.set(k, v);
+                    }
+                    ins.clear();
+                    timestamp(&now, &mut averages);
+                }
+                print_report(&averages);
+            }
+        }
     }
 }
