@@ -26,8 +26,14 @@ fn main() {
     assert!(ins.values().len() == 0);
 
     ins.set("k", 1);
-    
-    assert!(ins.remove("k") == Some(IndexedLinkedHashMapValue { index: 0, value: 1 }));
+
+    assert!(
+        ins.remove("k")
+            == Some(IndexedLinkedHashMapValue {
+                index: Some(0),
+                value: 1
+            })
+    );
     assert!(ins.len() == 0);
     assert!(ins.keys().len() == 0);
     assert!(ins.values().len() == 0);
@@ -37,13 +43,13 @@ fn main() {
 ```rust
 fn main() {
     let mut ins = IndexedLinkedHashMap::<Vec<&str>, &str, usize>::new();
-
-    assert!(ins.at(0) == None);
-
+    
     ins.set("k", 1);
 
-    assert!(ins.at(0) == Some(&1));
-    assert!(ins.at(1) == None);
+    assert!(ins.len() == 1);
+    assert!(ins.keys().len() == 1);
+    assert!(ins.values().len() == 1);
+    assert!(ins.get("k") == Some(&1));
 }
 ```
 
