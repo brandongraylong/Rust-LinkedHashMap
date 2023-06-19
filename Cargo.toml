@@ -1,20 +1,16 @@
 [package]
 name = "indexedlinkedhashmap"
-version = "2.0.0"
+version = "2.0.1"
 authors = ["Brandon Long"]
 edition = "2021"
 license = "MIT"
 description = "An indexable LinkedHashMap. The user defines the data structure that controls order."
-homepage = "https://github.com/brandongraylong/rust-indexedlinkedhashmap"
-documentation = "https://github.com/brandongraylong/rust-indexedlinkedhashmap/blob/main/README.md"
+documentation = "https://docs.rs/indexedlinkedhashmap"
 repository = "https://github.com/brandongraylong/rust-indexedlinkedhashmap"
 readme = "README.md"
 keywords = ["hashmap", "linkedhashMap", "indexedlinkedhashmap", "data-structures", "user-defined"]
 categories = ["data-structures"]
 exclude = [".*"]
-
-[badges]
-maintenance = { status = "experimental" }
 
 [dev-dependencies]
 rand = "0.8.5"
