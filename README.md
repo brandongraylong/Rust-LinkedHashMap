@@ -1,18 +1,22 @@
-# Rust IndexedLinkedHashMap
+# IndexedLinkedHashMap &emsp; [![Latest Version]][crates.io] [![Downloads]][crates.io] [![Documentation]][docs.rs]
+
+[Latest Version]: https://img.shields.io/crates/v/indexedlinkedhashmap.svg
+[Downloads]: https://img.shields.io/crates/d/indexedlinkedhashmap.svg
+[Documentation]: https://img.shields.io/docsrs/indexedlinkedhashmap/latest
+[crates.io]: https://crates.io/crates/indexedlinkedhashmap
+[docs.rs]: https://docs.rs/indexedlinkedhashmap
 
 An indexable LinkedHashMap. Written in Rust.
 
-## Notes
+## About
 
-- Explanations of data structures for keys:
-  - If you use a data structure such as a `Vec` for keys, you can index easily.
-  - If you use a data structure such as a `BinaryHeap`, it doesn't make much sense to index on certain operations.
-    - For example, this is how you'd call the set method: `ins.set(None, value)`.
-  - If you want to use your own data structure, implement the `Keys` trait at `indexedlinkedhashmap::traits::Keys`.
+Bring your own ordering data structure. Uses the standard library's `HashMap`.
 
-## Getting Started
-
-- [Install Rust](https://www.rust-lang.org/tools/install)
+- `Vec` and `BinaryHeap` are supported out of the box.
+- If you want to use your own data structure, implement the `Keys` trait at `indexedlinkedhashmap::traits::Keys`.
+- If you use a data structure like `Vec` for keys, you can index easily.
+- If you use a data structure like `BinaryHeap` for keys, it doesn't make much sense to index on certain operations.
+  - For example, this is how you'd call the set method: `ins.set(None, value)`.
 
 ## Examples
 
@@ -84,11 +88,3 @@ fn main() {
     assert!(ins.at(Some(1)) == Some(&true));
 }
 ```
-
-## Generate Documentation
-
-- Run `cargo doc`
-
-## Run Tests
-
-- Run `cargo test --release -- --nocapture`
