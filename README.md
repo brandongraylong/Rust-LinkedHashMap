@@ -1,7 +1,7 @@
 # IndexedLinkedHashMap &emsp; [![Latest Version]][crates.io] [![Downloads]][crates.io] [![Documentation]][docs.rs]
 
-[Latest Version]: https://img.shields.io/crates/v/indexedlinkedhashmap.svg
-[Downloads]: https://img.shields.io/crates/d/indexedlinkedhashmap.svg
+[Latest Version]: https://img.shields.io/crates/v/indexedlinkedhashmap
+[Downloads]: https://img.shields.io/crates/d/indexedlinkedhashmap
 [Documentation]: https://img.shields.io/docsrs/indexedlinkedhashmap/latest
 [crates.io]: https://crates.io/crates/indexedlinkedhashmap
 [docs.rs]: https://docs.rs/indexedlinkedhashmap
