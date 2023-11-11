@@ -198,7 +198,10 @@ pub mod traits {
     }
 }
 
-#[cfg(any(feature = "collections_ordering_vec", feature = "collections_ordering_binary_heap"))]
+#[cfg(any(
+    feature = "collections_ordering_vec",
+    feature = "collections_ordering_binary_heap"
+))]
 pub mod collections {
     pub mod ordering {
         use super::super::traits::Ordered;
