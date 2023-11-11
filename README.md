@@ -12,13 +12,34 @@ An indexable LinkedHashMap. Written in Rust.
 
 Bring your own ordering data structure. Uses the standard library's `HashMap`.
 
-- `Vec` and `BinaryHeap` are supported out of the box.
-- If you want to use your own data structure, implement the `Keys` trait at `indexedlinkedhashmap::traits::Keys`.
 - If you use a data structure like `Vec` for keys, you can index easily.
 - If you use a data structure like `BinaryHeap` for keys, it doesn't make much sense to index on certain operations.
   - For example, this is how you'd call the set method: `ins.set(None, value)`.
 
-## Examples
+## Devlopers
+
+- If you want to use your own data structure, implement the `Ordered` trait at `indexedlinkedhashmap::traits::Ordered`.
+
+## Features
+
+- collections_ordering_vec
+  - Support for `Vec` usage
+- collections_ordering_binary_heap
+  - Support for `BinaryHeap` usage
+
+## Usage
+
+```toml
+[dependencies]
+indexedlinkedhashmap = "3.0.0"
+```
+
+```toml
+[dependencies]
+indexedlinkedhashmap = { version = "3.0.0", features = [ "collections_ordering_vec", "collections_ordering_binary_heap" ] }
+```
+
+### Examples
 
 ```rust
 fn main() {
@@ -88,3 +109,7 @@ fn main() {
     assert!(ins.at(Some(1)) == Some(&true));
 }
 ```
+
+## Testing
+
+Run `cargo test --features collections_ordering_vec,collections_ordering_binary_heap`

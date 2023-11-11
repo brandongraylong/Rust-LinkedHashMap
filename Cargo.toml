@@ -1,6 +1,6 @@
 [package]
 name = "indexedlinkedhashmap"
-version = "2.0.2"
+version = "3.0.0"
 authors = ["Brandon Long"]
 edition = "2021"
 license = "MIT"
@@ -12,5 +12,6 @@ keywords = ["hashmap", "linkedhashMap", "indexedlinkedhashmap", "data-structures
 categories = ["data-structures"]
 exclude = [".*"]
 
-[dev-dependencies]
-rand = "0.8.5"
+[features]
+collections_ordering_vec = []
+collections_ordering_binary_heap = []
