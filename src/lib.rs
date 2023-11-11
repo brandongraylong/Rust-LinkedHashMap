@@ -5,7 +5,7 @@
 use std::collections::HashMap;
 use std::fmt::{Debug, Formatter, Result};
 use std::hash::Hash;
-use traits::Keys;
+use traits::Ordered;
 
 /// Stores an index for quick key lookup and the value.
 #[derive(PartialEq, Clone, Copy)]
@@ -22,7 +22,7 @@ pub struct IndexedLinkedHashMap<I, K, V> {
 
 impl<I, K, V> IndexedLinkedHashMap<I, K, V>
 where
-    I: Keys<K> + Default,
+    I: Ordered<K> + Default,
     K: Eq + Hash + Clone,
     V: Clone,
 {
@@ -167,7 +167,7 @@ where
 
 impl<I, K, V> Debug for IndexedLinkedHashMap<I, K, V>
 where
-    I: Keys<K> + Default,
+    I: Ordered<K> + Default,
     K: Eq + Hash + Clone + Debug,
     V: Clone + Debug,
 {
@@ -188,7 +188,7 @@ where
 }
 
 pub mod traits {
-    pub trait Keys<K> {
+    pub trait Ordered<K> {
         fn get(&self, i: Option<usize>) -> Option<&K>;
         fn set(&mut self, i: Option<usize>, k: K);
         fn push(&mut self, k: K);
@@ -198,118 +198,126 @@ pub mod traits {
     }
 }
 
+#[cfg(any(
+    feature = "collections_ordering_vec",
+    feature = "collections_ordering_binary_heap"
+))]
 pub mod collections {
-    use super::traits::Keys;
-    use std::collections::BinaryHeap;
+    pub mod ordering {
+        use super::super::traits::Ordered;
+        use std::collections::BinaryHeap;
 
-    impl<K> Keys<K> for Vec<K> {
-        fn get(&self, i: Option<usize>) -> Option<&K> {
-            return match i {
-                Some(i) => match i >= self.len() {
-                    true => None,
-                    false => Some(&self[i]),
-                },
-                None => None,
-            };
-        }
+        #[cfg(feature = "collections_ordering_vec")]
+        impl<K> Ordered<K> for Vec<K> {
+            fn get(&self, i: Option<usize>) -> Option<&K> {
+                return match i {
+                    Some(i) => match i >= self.len() {
+                        true => None,
+                        false => Some(&self[i]),
+                    },
+                    None => None,
+                };
+            }
 
-        fn set(&mut self, i: Option<usize>, k: K) {
-            match i {
-                Some(i) => match i >= self.len() {
-                    true => (),
-                    false => {
-                        self[i] = k;
-                    }
-                },
-                None => (),
-            };
-        }
-
-        fn push(&mut self, k: K) {
-            self.push(k);
-        }
-
-        fn remove(&mut self, i: Option<usize>) {
-            match i {
-                Some(i) => match i >= self.len() {
-                    true => (),
-                    false => {
-                        self.remove(i);
-                    }
-                },
-                None => (),
-            };
-        }
-
-        fn clear(&mut self) {
-            self.clear();
-        }
-
-        fn len(&self) -> usize {
-            return self.len();
-        }
-    }
-
-    impl<K> Keys<K> for BinaryHeap<K>
-    where
-        K: Ord + Eq,
-        BinaryHeap<K>: From<Vec<K>> + Clone,
-    {
-        fn get(&self, i: Option<usize>) -> Option<&K> {
-            return match i {
-                Some(i) => match i >= self.len() {
-                    true => None,
-                    false => {
-                        for (idx, k) in self.iter().enumerate() {
-                            if i == idx {
-                                return Some(k);
-                            }
+            fn set(&mut self, i: Option<usize>, k: K) {
+                match i {
+                    Some(i) => match i >= self.len() {
+                        true => (),
+                        false => {
+                            self[i] = k;
                         }
+                    },
+                    None => (),
+                };
+            }
 
-                        return None;
-                    }
-                },
-                None => None,
-            };
-        }
+            fn push(&mut self, k: K) {
+                self.push(k);
+            }
 
-        fn set(&mut self, _i: Option<usize>, k: K) {
-            let mut p = Vec::from(self.clone());
-            p.push(k);
-
-            self.append(&mut BinaryHeap::<K>::from(p));
-        }
-
-        fn push(&mut self, k: K) {
-            self.push(k);
-        }
-
-        fn remove(&mut self, i: Option<usize>) {
-            return match i {
-                Some(i) => match i >= self.len() {
-                    true => (),
-                    false => {
-                        let p: Vec<K> = Vec::from(self.clone());
-                        let mut n: Vec<&K> = Vec::new();
-                        for (idx, k) in p.iter().enumerate() {
-                            if idx != i {
-                                n.push(k);
-                            }
+            fn remove(&mut self, i: Option<usize>) {
+                match i {
+                    Some(i) => match i >= self.len() {
+                        true => (),
+                        false => {
+                            self.remove(i);
                         }
+                    },
+                    None => (),
+                };
+            }
 
-                        self.append(&mut BinaryHeap::<K>::from(p));
-                    }
-                },
-                None => (),
-            };
+            fn clear(&mut self) {
+                self.clear();
+            }
+
+            fn len(&self) -> usize {
+                return self.len();
+            }
         }
 
-        fn clear(&mut self) {
-            self.clear();
-        }
+        #[cfg(feature = "collections_ordering_binary_heap")]
+        impl<K> Ordered<K> for BinaryHeap<K>
+        where
+            K: Ord + Eq,
+            BinaryHeap<K>: From<Vec<K>> + Clone,
+        {
+            fn get(&self, i: Option<usize>) -> Option<&K> {
+                return match i {
+                    Some(i) => match i >= self.len() {
+                        true => None,
+                        false => {
+                            for (idx, k) in self.iter().enumerate() {
+                                if i == idx {
+                                    return Some(k);
+                                }
+                            }
 
-        fn len(&self) -> usize {
-            return self.len();
+                            return None;
+                        }
+                    },
+                    None => None,
+                };
+            }
+
+            fn set(&mut self, _i: Option<usize>, k: K) {
+                let mut p = Vec::from(self.clone());
+                p.push(k);
+
+                self.append(&mut BinaryHeap::<K>::from(p));
+            }
+
+            fn push(&mut self, k: K) {
+                self.push(k);
+            }
+
+            fn remove(&mut self, i: Option<usize>) {
+                return match i {
+                    Some(i) => match i >= self.len() {
+                        true => (),
+                        false => {
+                            let p: Vec<K> = Vec::from(self.clone());
+                            let mut n: Vec<&K> = Vec::new();
+                            for (idx, k) in p.iter().enumerate() {
+                                if idx != i {
+                                    n.push(k);
+                                }
+                            }
+
+                            self.append(&mut BinaryHeap::<K>::from(p));
+                        }
+                    },
+                    None => (),
+                };
+            }
+
+            fn clear(&mut self) {
+                self.clear();
+            }
+
+            fn len(&self) -> usize {
+                return self.len();
+            }
         }
     }
 }
@@ -461,76 +469,6 @@ mod tests {
                 ins.set("k", 1);
                 println!("{:?}", ins);
                 assert!("\"k\": 1" == format!("{:?}", ins));
-            }
-        }
-
-        mod performance {
-            use crate::*;
-            use rand::distributions::{Alphanumeric, DistString};
-            use std::{collections::HashMap, time::Instant};
-
-            const VALIDATIONS: u128 = 10;
-            const ITERATIONS: usize = 1000;
-
-            fn get_random_string() -> String {
-                return Alphanumeric.sample_string(&mut rand::thread_rng(), u8::MAX.into());
-            }
-
-            fn insert_or_add(averages: &mut HashMap<&str, u128>, key: &'static str, value: u128) {
-                if averages.contains_key(key) {
-                    averages.insert(key, averages.get(key).unwrap() + value);
-                } else {
-                    averages.insert(key, value);
-                }
-            }
-
-            fn timestamp(now: &Instant, averages: &mut HashMap<&str, u128>) {
-                insert_or_add(averages, "s", now.elapsed().as_secs().into());
-                insert_or_add(averages, "ms", now.elapsed().as_millis());
-                insert_or_add(averages, "μs", now.elapsed().as_micros());
-                insert_or_add(averages, "ns", now.elapsed().as_nanos());
-            }
-
-            fn print_report(averages: &HashMap<&str, u128>) {
-                println!("===== BEGIN REPORT =====");
-                for (key, value) in averages.into_iter() {
-                    println!(
-                        "Average of {} runs of {} iterations: {} {}",
-                        VALIDATIONS,
-                        ITERATIONS,
-                        value / VALIDATIONS,
-                        key
-                    );
-                }
-                println!("===== END REPORT =====");
-            }
-
-            #[test]
-            fn run() {
-                let mut averages: HashMap<&str, u128> = HashMap::new();
-                for _ in 0..VALIDATIONS {
-                    let now = Instant::now();
-                    let mut ins = IndexedLinkedHashMap::<Vec<String>, String, String>::new();
-
-                    for i in 0..ITERATIONS {
-                        let k: String = get_random_string();
-                        let v: String = get_random_string();
-                        ins.set(k.to_owned(), v.to_owned());
-                        ins.get(k.to_owned());
-                        ins.at(Some(i));
-                        ins.key_at(Some(i));
-                        ins.set_at(Some(i), k.to_owned(), v.to_owned());
-                        ins.len();
-                        ins.contains_key(k.to_owned());
-                        ins.keys();
-                        ins.values();
-                        ins.remove(k.to_owned());
-                        ins.set(k, v);
-                    }
-                    ins.clear();
-                    timestamp(&now, &mut averages);
-                }
-                print_report(&averages);
             }
         }
     }
